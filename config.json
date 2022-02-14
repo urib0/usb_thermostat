@@ -1,0 +1,13 @@
+{
+    "logdir": "hoge",
+    "thermo": {
+        "sensor_name": "thermo",
+        "sensors": [
+            "te"
+        ]
+    },
+    "ssr": {
+        "serial_port": "/dev/hoge",
+        "serial_rate": 9600
+    }
+}
