@@ -1,5 +1,6 @@
 {
     "logdir": "hoge",
+    "interval": 5,
     "thermo": {
         "sensor_name": "thermo",
         "sensors": [
