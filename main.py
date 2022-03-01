@@ -46,10 +46,9 @@ while conf["interval"]:
         for i in range(data_num):
             # センサ名と数字のペアができる ex) ["temp","2657"]
             temp_now = data_list[i].split("=")[1]
-
     # 目標温度より低かったらSSRをON、高かったらOFFする
-    temp_diff = (int(temp_now)-TEMP_TARGET*100)/100
-    if int(temp_now) < ( ( TEMP_TARGET - TEMP_OFFSET ) * 100 ) :
+    temp_diff = (int(temp_now)-conf["TEMP_TARGET"]*100)/100
+    if int(temp_now) < ( ( conf["TEMP_TARGET"] - conf["TEMP_OFFSET"] ) * 100 ) :
         timestamp = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
         ser.write(SSR_ON)
         print(str(timestamp) + "," + "temp:" + str(int(temp_now)/100)+"," + "SSR:" + SSR_ON.decode("utf-8") + "," + str(temp_diff))
