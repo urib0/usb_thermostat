@@ -2,6 +2,7 @@
     "logdir": "hoge",
     "interval": 5,
     "thermo": {
+    "TEMP_TARGET": 75,
         "sensor_name": "thermo",
         "sensors": [
             "te"
