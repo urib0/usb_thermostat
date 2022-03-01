@@ -11,13 +11,15 @@ import os
 import subprocess
 import requests
 import serial
+import datetime
 
 DEBUG = False
 REPETITIONS = 3
 SSR_ON = b"1"
 SSR_OFF = b"0"
-TEMP_TARGET = 60
-TEMP_OFFSET = 2
+TEMP_TARGET = 75
+TEMP_OFFSET = 1
+ON_TIME = 5
 
 def conv(data):
     if data[0] in {"temp", "hum", "te"}:
@@ -48,13 +50,20 @@ while conf["interval"]:
             temp_now = data_list[i].split("=")[1]
 
     # 目標温度より低かったらSSRをON、高かったらOFFする
+    temp_diff = (int(temp_now)-TEMP_TARGET*100)/100
     if int(temp_now) < ( ( TEMP_TARGET - TEMP_OFFSET ) * 100 ) :
+        timestamp = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
         ser.write(SSR_ON)
-        print("temp:" + str(int(temp_now)/100)+" " + "SSR:" + SSR_ON.decode("utf-8"))
-    else:
+        print(str(timestamp) + "," + "temp:" + str(int(temp_now)/100)+"," + "SSR:" + SSR_ON.decode("utf-8") + "," + str(temp_diff))
+        time.sleep(ON_TIME)
         ser.write(SSR_OFF)
-        print("temp:" + str(int(temp_now)/100)+" " + "SSR:" + SSR_OFF.decode("utf-8"))
-        time.sleep(conf["interval"])
+        timestamp = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
+        print(str(timestamp) + "," + "temp:" + str(int(temp_now)/100)+"," + "SSR:" + SSR_ON.decode("utf-8") + "," + str(temp_diff))
+    else:
+        timestamp = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
+        ser.write(SSR_OFF)
+        print(str(timestamp) + "," + "temp:" + str(int(temp_now)/100)+"," + "SSR:" + SSR_OFF.decode("utf-8") + "," + str(temp_diff))
+#    print("diff" + str((TEMP_TARGET*100 - int(temp_now))/100))
     time.sleep(conf["interval"])
 
 
