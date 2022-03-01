@@ -17,7 +17,6 @@ DEBUG = False
 REPETITIONS = 3
 SSR_ON = b"1"
 SSR_OFF = b"0"
-TEMP_OFFSET = 1
 ON_TIME = 5
 
 def conv(data):
