@@ -17,6 +17,7 @@ DEBUG = False
 REPETITIONS = 3
 SSR_ON = b"1"
 SSR_OFF = b"0"
+TEMP_DIFF_STANDARD = 20
 ON_TIME = 5
 
 def conv(data):
@@ -47,21 +48,26 @@ while conf["interval"]:
             # センサ名と数字のペアができる ex) ["temp","2657"]
             temp_now = data_list[i].split("=")[1]
     # 目標温度より低かったらSSRをON、高かったらOFFする
-    temp_diff = (int(temp_now)-conf["TEMP_TARGET"]*100)/100
-    if int(temp_now) < ( ( conf["TEMP_TARGET"] - conf["TEMP_OFFSET"] ) * 100 ) :
-        timestamp = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
+    temp_diff = (int(temp_now)-conf["TEMP_TARGET"]*100)*(-1)
+    if temp_diff < 0:temp_diff = 0
+    print("temp_diff:"+str(temp_diff))
+    ontime = (temp_diff/TEMP_DIFF_STANDARD)/10
+    print("ontime:"+str(ontime))
+    print("temp_now:"+str(int(temp_now)+int(temp_diff*(-1)))+",target:"+str(conf["TEMP_TARGET"]*100))
+    if (int(temp_now)+int(temp_diff*(-1)))>(conf["TEMP_TARGET"]*100) :
+        timestamp = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S:%f")[:-2]
         ser.write(SSR_ON)
         print(str(timestamp) + "," + "temp:" + str(int(temp_now)/100)+"," + "SSR:" + SSR_ON.decode("utf-8") + "," + str(temp_diff))
-        time.sleep(ON_TIME)
+        time.sleep(ontime)
         ser.write(SSR_OFF)
-        timestamp = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
-        print(str(timestamp) + "," + "temp:" + str(int(temp_now)/100)+"," + "SSR:" + SSR_ON.decode("utf-8") + "," + str(temp_diff))
+        timestamp = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S:%f")[:-2]
+        print(str(timestamp) + "," + "temp:" + str(int(temp_now)/100)+"," + "SSR:" + SSR_OFF.decode("utf-8") + "," + str(temp_diff))
     else:
-        timestamp = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
+        timestamp = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S:%f")[:-2]
         ser.write(SSR_OFF)
         print(str(timestamp) + "," + "temp:" + str(int(temp_now)/100)+"," + "SSR:" + SSR_OFF.decode("utf-8") + "," + str(temp_diff))
 #    print("diff" + str((TEMP_TARGET*100 - int(temp_now))/100))
-    time.sleep(conf["interval"])
-
-
+    sleeptime = conf["interval"]-ontime
+    print("sleeptime:"+str(sleeptime)) 
+    time.sleep(sleeptime)
 
