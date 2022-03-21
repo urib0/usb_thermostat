@@ -32,7 +32,6 @@ while conf["interval"]:
     f = open(filename,"r")
     lines = f.readlines()[-1:][0][:-1]
     f.close
-    ser = serial.Serial(conf["ssr"]["serial_port"],conf["ssr"]["serial_rate"],timeout=3)
 
     # ログに含まれるセンサの数がconfig.jsonと同じか確認
     data_list = lines.split(",")[1].split(";")
@@ -48,6 +47,7 @@ while conf["interval"]:
     ontime = (temp_diff/TEMP_DIFF_STANDARD)/10
     print("ontime:"+str(ontime))
     print("temp_now:"+str(int(temp_now)+int(temp_diff*(-1)))+",target:"+str(conf["TEMP_TARGET"]*100))
+    ser = serial.Serial(conf["ssr"]["serial_port"],conf["ssr"]["serial_rate"],timeout=3)
     if (int(temp_now)+int(temp_diff*(-1)))>(conf["TEMP_TARGET"]*100) :
         timestamp = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S:%f")[:-2]
         ser.write(SSR_ON)
@@ -60,6 +60,7 @@ while conf["interval"]:
         timestamp = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S:%f")[:-2]
         ser.write(SSR_OFF)
         print(str(timestamp) + "," + "temp:" + str(int(temp_now)/100)+"," + "SSR:" + SSR_OFF.decode("utf-8") + "," + str(temp_diff))
+        ser.close()
 #    print("diff" + str((TEMP_TARGET*100 - int(temp_now))/100))
     sleeptime = conf["interval"]-ontime
     print("sleeptime:"+str(sleeptime)) 
