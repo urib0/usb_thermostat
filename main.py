@@ -1,15 +1,9 @@
 #!/usr/bin/env python3
 # python3.7で動作確認済み
 
-import ambient
 import time
 import json
 import datetime as dt
-import sys
-import random
-import os
-import subprocess
-import requests
 import serial
 import datetime
 
