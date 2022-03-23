@@ -19,8 +19,8 @@ P = 0
 I = 0
 D = 0
 kP = 1
-kI = 1
-kD = 1
+kI = 0
+kD = 0
 
 def conv(data):
     if data[0] in {"temp", "hum", "te"}:
@@ -80,18 +80,32 @@ while conf["interval"]:
             ser.close()
         sleeptime = conf["interval"]-ontime
 
-    dt = conf["interval"]/60
+    dt = conf["interval"]
     P = conf["TEMP_TARGET"]-temp
-    I += P*dt
-    D = (temp-temp_old)/dt
+    I = P/dt
+    D = (temp-temp_old)*dt
     val = P*kP+I*kI+D*kD
     temp_old = temp
 
     logger("temp:"+str(temp)+",target:"+str(conf["TEMP_TARGET"]))
     logger("P:"+str(P))
-    logger("I:"+str(I))
-    logger("D:"+str(D))
+#    logger("I:"+str(I))
+#    logger("D:"+str(D))
     logger("val:"+str(val))
-#    logger("sleeptime:"+str(conf["interval"])) 
-    time.sleep(conf["interval"])
+    ser = serial.Serial(conf["ssr"]["serial_port"],conf["ssr"]["serial_rate"],timeout=3)
+    if int(val*100)<0:
+        val = 0
+        ser.close()
+    else:
+        if int(val*100)>(conf["interval"]*100):
+            val = conf["interval"]
+        logger("ontime:"+str(val)+",offtime:"+str(conf["interval"]-val)) 
+        ser.write(SSR_ON)
+        logger("SSR:ON")
+        time.sleep(val)
+        ser.write(SSR_OFF)    
+        logger("SSR:OFF")
+        ser.close()
+
+    time.sleep(conf["interval"]-int(val)+0.5)
 
