@@ -95,6 +95,8 @@ while conf["interval"]:
     ser = serial.Serial(conf["ssr"]["serial_port"],conf["ssr"]["serial_rate"],timeout=3)
     if int(val*100)<0:
         val = 0
+        ser.write(SSR_OFF)
+        logger("SSR:OFF")
         ser.close()
     else:
         if int(val*100)>(conf["interval"]*100):
