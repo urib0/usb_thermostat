@@ -93,7 +93,7 @@ while conf["interval"]:
 #    logger("D:"+str(D))
     logger("val:"+str(val))
     ser = serial.Serial(conf["ssr"]["serial_port"],conf["ssr"]["serial_rate"],timeout=3)
-    if int(val*100)<0:
+    if int(val*100)<=0:
         val = 0
         ser.write(SSR_OFF)
         logger("SSR:OFF")
@@ -104,7 +104,7 @@ while conf["interval"]:
         logger("ontime:"+str(val)+",offtime:"+str(conf["interval"]-val)) 
         ser.write(SSR_ON)
         logger("SSR:ON")
-        time.sleep(val)
+        time.sleep(val+0.5)
         ser.write(SSR_OFF)    
         logger("SSR:OFF")
         ser.close()
