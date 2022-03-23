@@ -101,6 +101,8 @@ while conf["interval"]:
     else:
         if int(val*100)>(conf["interval"]*100):
             val = conf["interval"]
+        if int(val*100)<100:
+            val = 1
         logger("ontime:"+str(val)+",offtime:"+str(conf["interval"]-val)) 
         ser.write(SSR_ON)
         logger("SSR:ON")
@@ -109,5 +111,5 @@ while conf["interval"]:
         logger("SSR:OFF")
         ser.close()
 
-    time.sleep(conf["interval"]-int(val)+0.5)
+    time.sleep(conf["interval"]-int(val))
 
