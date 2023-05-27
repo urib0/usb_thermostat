@@ -58,6 +58,7 @@ f = open("./config.json", "r")
 conf = json.loads(f.read())
 f.close()
 interval = conf["interval"]
+temp_target = conf["TEMP_TARGET"]
 temp_old = thermocouple()
 
 while True:
@@ -66,7 +67,7 @@ while True:
         temp = thermocouple()
 
         dt = interval
-        P = conf["TEMP_TARGET"]-temp
+        P = temp_target-temp
         I = P/dt
         D = (temp-temp_old)*dt
         ontime = P*kP+I*kI+D*kD
