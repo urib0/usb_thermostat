@@ -31,6 +31,18 @@ def ssr_controller(switch: bool):
                 print(f"error:{e}")
         return False
 
+def thermocouple():
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d")
+    filename = conf["logdir"] + "/" +\
+        conf["thermo"]["sensor_name"] + "/" +\
+        conf["thermo"]["sensor_name"] + "_" +\
+        timestamp + ".csv"
+    f = open(filename,"r")
+    lines = f.readlines()[-1:][0][:-1]
+    f.close
+    temp = float(lines.split(",")[1].split(";")[0].split("=")[1])/100
+    return temp
+
 def conv(data):
     if data[0] in {"temp", "hum", "te"}:
         return int(data[1]) / 100
@@ -40,24 +52,18 @@ def conv(data):
 def logger(s):
     print(datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S:%f")[:-2]+":"+s)
 
-temp_old = 0
+
+# 設定値読み込み
+f = open("./config.json", "r")
+conf = json.loads(f.read())
+f.close()
+interval = conf["interval"]
+temp_old = thermocouple()
+
 while True:
-    # 設定値読み込み
-    f = open("./config.json", "r")
-    conf = json.loads(f.read())
-    f.close()
-    interval = conf["interval"]
     try:
         #　熱電対読み込み
-        timestamp = datetime.datetime.now().strftime("%Y-%m-%d")
-        filename = conf["logdir"] + "/" +\
-            conf["thermo"]["sensor_name"] + "/" +\
-            conf["thermo"]["sensor_name"] + "_" +\
-            timestamp + ".csv"
-        f = open(filename,"r")
-        lines = f.readlines()[-1:][0][:-1]
-        f.close
-        temp = float(lines.split(",")[1].split(";")[0].split("=")[1])/100
+        temp = thermocouple()
 
         dt = interval
         P = conf["TEMP_TARGET"]-temp
@@ -68,6 +74,7 @@ while True:
 
         logger(f"temp:{str(temp)},ontime:{round(ontime,2)},tP:{str(round(P,2))},tI:{round((I),2)},tD:{round(D,2)}")
         logger("ontime:"+str(ontime)+",offtime:"+str(interval-ontime))
+
         if ontime<=0:
             ssr_controller(SSR_OFF)
             time.sleep(interval)
