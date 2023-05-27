@@ -52,6 +52,8 @@ def conv(data):
 def logger(s):
     print(datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S:%f")[:-2]+":"+s)
 
+def digit_alignment(num):
+    return "{:.3f}".format(num)
 
 # 設定値読み込み
 f = open("./config.json", "r")
@@ -73,7 +75,7 @@ while True:
         ontime = P*kP+I*kI+D*kD
         temp_old = temp
 
-        logger(f"temp:{round(temp,2)},ontime:{round(ontime,2)},tP:{str(round(P,2))},tI:{round((I),2)},tD:{round(D,2)}")
+        logger(f"temp:{digit_alignment(temp)},tP:{digit_alignment(P*kP)},tI:{digit_alignment(I*kI)},tD:{digit_alignment(D*kD)}")
         logger(f"interval:{round(interval,3)},ontime:{round(ontime,3)},offtime:{round(interval-ontime,3)}")
 
         if ontime<=0:
