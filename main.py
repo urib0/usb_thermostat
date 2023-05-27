@@ -14,7 +14,7 @@ SSR_ON = True
 SSR_OFF = False
 SSR_RETRY = 3
 kP = 1
-kI = 0
+kI = -3
 kD = 0
 
 def ssr_controller(switch: bool):
