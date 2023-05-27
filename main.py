@@ -13,9 +13,6 @@ DEBUG = False
 SSR_ON = True
 SSR_OFF = False
 SSR_RETRY = 3
-P = 0
-I = 0
-D = 0
 kP = 1
 kI = 0
 kD = 0
@@ -49,6 +46,7 @@ while True:
     f = open("./config.json", "r")
     conf = json.loads(f.read())
     f.close()
+    interval = conf["interval"]
     try:
         #　熱電対読み込み
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d")
@@ -61,7 +59,7 @@ while True:
         f.close
         temp = float(lines.split(",")[1].split(";")[0].split("=")[1])/100
 
-        dt = conf["interval"]
+        dt = interval
         P = conf["TEMP_TARGET"]-temp
         I = P/dt
         D = (temp-temp_old)*dt
@@ -69,18 +67,18 @@ while True:
         temp_old = temp
 
         logger(f"temp:{str(temp)},ontime:{round(ontime,2)},tP:{str(round(P,2))},tI:{round((I),2)},tD:{round(D,2)}")
-        logger("ontime:"+str(ontime)+",offtime:"+str(conf["interval"]-ontime))
+        logger("ontime:"+str(ontime)+",offtime:"+str(interval-ontime))
         if ontime<=0:
             ssr_controller(SSR_OFF)
-            time.sleep(conf["interval"])
-        elif ontime > conf["interval"]:
+            time.sleep(interval)
+        elif ontime > interval:
             ssr_controller(SSR_ON)
-            time.sleep(conf["interval"])
+            time.sleep(interval)
         else:
             ssr_controller(SSR_ON)
             time.sleep(ontime)
             ssr_controller(SSR_OFF)
-            time.sleep(conf["interval"]-int(ontime))
+            time.sleep(interval-int(ontime))
 
     except KeyboardInterrupt:
         print("SSR OFF!!")
