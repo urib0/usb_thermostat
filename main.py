@@ -35,40 +35,44 @@ f.close()
 
 temp_old = 0
 while conf["interval"]:
-    #　熱電対読み込み
-    timestamp = datetime.datetime.now().strftime("%Y-%m-%d")
-    filename = conf["logdir"] + "/" +\
-        conf["thermo"]["sensor_name"] + "/" +\
-        conf["thermo"]["sensor_name"] + "_" +\
-        timestamp + ".csv"
-    f = open(filename,"r")
-    lines = f.readlines()[-1:][0][:-1]
-    f.close
-    temp = float(lines.split(",")[1].split(";")[0].split("=")[1])/100
+    try:
+        #　熱電対読み込み
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d")
+        filename = conf["logdir"] + "/" +\
+            conf["thermo"]["sensor_name"] + "/" +\
+            conf["thermo"]["sensor_name"] + "_" +\
+            timestamp + ".csv"
+        f = open(filename,"r")
+        lines = f.readlines()[-1:][0][:-1]
+        f.close
+        temp = float(lines.split(",")[1].split(";")[0].split("=")[1])/100
 
-    dt = conf["interval"]
-    P = conf["TEMP_TARGET"]-temp
-    I = P/dt
-    D = (temp-temp_old)*dt
-    val = P*kP+I*kI+D*kD
-    temp_old = temp
+        dt = conf["interval"]
+        P = conf["TEMP_TARGET"]-temp
+        I = P/dt
+        D = (temp-temp_old)*dt
+        val = P*kP+I*kI+D*kD
+        temp_old = temp
 
-    logger(f"P:{str(P)},I:{str(I)},D:{str(D)},val:{str(val)},")
-    ser = serial.Serial(conf["ssr"]["serial_port"],conf["ssr"]["serial_rate"],timeout=3)
-    logger("ontime:"+str(val)+",offtime:"+str(conf["interval"]-val)) 
-    if int(val*100)<=0:
-        val = 0
+        logger(f"P:{str(P)},I:{str(I)},D:{str(D)},val:{str(val)},")
+        ser = serial.Serial(conf["ssr"]["serial_port"],conf["ssr"]["serial_rate"],timeout=3)
+        logger("ontime:"+str(val)+",offtime:"+str(conf["interval"]-val)) 
+        if int(val*100)<=0:
+            val = 0
+            ser.write(SSR_OFF)
+            ser.close()
+        else:
+            if int(val*100)>(conf["interval"]*100):
+                val = conf["interval"]
+            if int(val*100)<100:
+                val = 1
+            ser.write(SSR_ON)
+            time.sleep(val+0.5)
+            ser.write(SSR_OFF)    
+            ser.close()
+
+        time.sleep(conf["interval"]-int(val))
+    except KeyboardInterrupt:
+        print("SSR OFF!!")
         ser.write(SSR_OFF)
-        ser.close()
-    else:
-        if int(val*100)>(conf["interval"]*100):
-            val = conf["interval"]
-        if int(val*100)<100:
-            val = 1
-        ser.write(SSR_ON)
-        time.sleep(val+0.5)
-        ser.write(SSR_OFF)    
-        ser.close()
-
-    time.sleep(conf["interval"]-int(val))
-
+        exit(0)
