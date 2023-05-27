@@ -54,9 +54,9 @@ while conf["interval"]:
         val = P*kP+I*kI+D*kD
         temp_old = temp
 
-        logger(f"P:{str(P)},I:{str(I)},D:{str(D)},val:{str(val)},")
-        ser = serial.Serial(conf["ssr"]["serial_port"],conf["ssr"]["serial_rate"],timeout=3)
+        logger(f"temp:{str(temp)},P:{str(round(P,2))},I:{round((I),2)},D:{round(D,2)},val:{round(val,2)},")
         logger("ontime:"+str(val)+",offtime:"+str(conf["interval"]-val)) 
+        ser = serial.Serial(conf["ssr"]["serial_port"],conf["ssr"]["serial_rate"],timeout=3)
         if int(val*100)<=0:
             val = 0
             ser.write(SSR_OFF)
@@ -67,7 +67,7 @@ while conf["interval"]:
             if int(val*100)<100:
                 val = 1
             ser.write(SSR_ON)
-            time.sleep(val+0.5)
+            time.sleep(val)
             ser.write(SSR_OFF)    
             ser.close()
 
@@ -75,4 +75,5 @@ while conf["interval"]:
     except KeyboardInterrupt:
         print("SSR OFF!!")
         ser.write(SSR_OFF)
+        ser.close()
         exit(0)
