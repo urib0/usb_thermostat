@@ -73,8 +73,8 @@ while True:
         ontime = P*kP+I*kI+D*kD
         temp_old = temp
 
-        logger(f"temp:{str(temp)},ontime:{round(ontime,2)},tP:{str(round(P,2))},tI:{round((I),2)},tD:{round(D,2)}")
-        logger("ontime:"+str(ontime)+",offtime:"+str(interval-ontime))
+        logger(f"temp:{round(temp,2)},ontime:{round(ontime,2)},tP:{str(round(P,2))},tI:{round((I),2)},tD:{round(D,2)}")
+        logger(f"interval:{round(interval,3)},ontime:{round(ontime,3)},offtime:{round(interval-ontime,3)}")
 
         if ontime<=0:
             ssr_controller(SSR_OFF)
