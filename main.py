@@ -10,11 +10,8 @@ import serial
 import datetime
 
 DEBUG = False
-REPETITIONS = 3
 SSR_ON = b"1"
 SSR_OFF = b"0"
-TEMP_DIFF_STANDARD = 20
-ON_TIME = 5
 P = 0
 I = 0
 D = 0
