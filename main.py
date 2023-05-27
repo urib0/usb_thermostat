@@ -10,14 +10,29 @@ import serial
 import datetime
 
 DEBUG = False
-SSR_ON = b"1"
-SSR_OFF = b"0"
+SSR_ON = True
+SSR_OFF = False
+SSR_RETRY = 3
 P = 0
 I = 0
 D = 0
 kP = 1
 kI = 0
 kD = 0
+
+def ssr_controller(switch: bool):
+        for i in range(SSR_RETRY):
+            try:
+                ssr = serial.Serial(conf["ssr"]["serial_port"],conf["ssr"]["serial_rate"],timeout=3)
+                if switch:
+                    ssr.write(b"1")
+                else:
+                    ssr.write(b"0")
+                ssr.close()
+                return True
+            except Exception as e:
+                print(f"error:{e}")
+        return False
 
 def conv(data):
     if data[0] in {"temp", "hum", "te"}:
@@ -28,13 +43,12 @@ def conv(data):
 def logger(s):
     print(datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S:%f")[:-2]+":"+s)
 
-# 設定値読み込み
-f = open("./config.json", "r")
-conf = json.loads(f.read())
-f.close()
-
 temp_old = 0
-while conf["interval"]:
+while True:
+    # 設定値読み込み
+    f = open("./config.json", "r")
+    conf = json.loads(f.read())
+    f.close()
     try:
         #　熱電対読み込み
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d")
@@ -57,25 +71,18 @@ while conf["interval"]:
         logger(f"temp:{str(temp)},ontime:{round(ontime,2)},tP:{str(round(P,2))},tI:{round((I),2)},tD:{round(D,2)}")
         logger("ontime:"+str(ontime)+",offtime:"+str(conf["interval"]-ontime))
         if ontime<=0:
-            ser = serial.Serial(conf["ssr"]["serial_port"],conf["ssr"]["serial_rate"],timeout=3)
-            ser.write(SSR_OFF)
-            ser.close()
+            ssr_controller(SSR_OFF)
             time.sleep(conf["interval"])
         elif ontime > conf["interval"]:
-            ser = serial.Serial(conf["ssr"]["serial_port"],conf["ssr"]["serial_rate"],timeout=3)
-            ser.write(SSR_ON)
-            ser.close()
+            ssr_controller(SSR_ON)
             time.sleep(conf["interval"])
         else:
-            ser = serial.Serial(conf["ssr"]["serial_port"],conf["ssr"]["serial_rate"],timeout=3)
-            ser.write(SSR_ON)
+            ssr_controller(SSR_ON)
             time.sleep(ontime)
-            ser.write(SSR_OFF)
-            ser.close()
+            ssr_controller(SSR_OFF)
             time.sleep(conf["interval"]-int(ontime))
+
     except KeyboardInterrupt:
         print("SSR OFF!!")
-        ser = serial.Serial(conf["ssr"]["serial_port"],conf["ssr"]["serial_rate"],timeout=3)
-        ser.write(SSR_OFF)
-        ser.close()
+        ssr_controller(SSR_OFF)
         exit(0)
