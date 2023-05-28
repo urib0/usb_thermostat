@@ -12,8 +12,6 @@ from typing import Union
 import os
 
 DEBUG = False
-SSR_ON = True
-SSR_OFF = False
 kP = 1
 kI = 0
 kD = 0
@@ -71,24 +69,6 @@ class themocouple_controller():
             return None
         return int(raw.split("=")[1])/100
 
-#def thermocouple():
-#    timestamp = datetime.datetime.now().strftime("%Y-%m-%d")
-#    filename = conf["logdir"] + "/" +\
-#        conf["thermo"]["sensor_name"] + "/" +\
-#        conf["thermo"]["sensor_name"] + "_" +\
-#        timestamp + ".csv"
-#    f = open(filename,"r")
-#    lines = f.readlines()[-1:][0][:-1]
-#    f.close
-#    temp = float(lines.split(",")[1].split(";")[0].split("=")[1])/100
-#    return temp
-
-def conv(data):
-    if data[0] in {"temp", "hum", "te"}:
-        return int(data[1]) / 100
-    else:
-        return int(data[1])
-
 def log_print(s):
     print(datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S:%f")[:-2]+":"+s)
 
@@ -99,17 +79,15 @@ def log_export(path,name,data):
     path = path + "/" + name + "/"
 
     os.makedirs(path, exist_ok=True)
-    f = open(path + filename, mode="a")
-    f.write(write_str + "\n")
-    f.close()
+    with open(path + filename, mode="a") as f:
+        f.write(write_str + "\n")
 
 def digit_alignment(num):
     return "{:.3f}".format(num)
 
 # 設定値読み込み
-f = open("./config.json", "r")
-conf = json.loads(f.read())
-f.close()
+with open("./config.json", "r") as f:
+    conf = json.loads(f.read())
 
 path = conf['logdir']
 name = "thermo"
@@ -124,7 +102,6 @@ temp_old = thermo.read_temp()
 while True:
     #　熱電対読み込み
     ret = thermo.read_temp()
-    print(f"{ret=}")
     if ret is None:
         continue
     else:
