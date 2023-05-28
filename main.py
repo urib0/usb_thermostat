@@ -65,7 +65,7 @@ class themocouple_controller():
     def read_temp(self) -> Union[float,None]:
         raw = self.thermo.read()
         raw = raw.split(";")[0]
-        if raw.split("=")[0] == "te":
+        if raw.split("=")[0] != "te":
             return None
         return int(raw.split("=")[1])/100
 
@@ -105,32 +105,31 @@ temp_target = conf["TEMP_TARGET"]
 temp_old = thermo.read_temp()
 
 while True:
-    try:
-        #　熱電対読み込み
-        temp = thermo.read_temp()
+    #　熱電対読み込み
+    ret = thermo.read_temp()
+    print(f"{ret=}")
+    if ret is None:
+        continue
+    else:
+        temp = float(ret)
 
-        dt = interval
-        P = temp_target-temp
-        I = P/dt
-        D = (temp-temp_old)*dt
-        ontime = P*kP+I*kI+D*kD
-        temp_old = temp
+    dt = interval
+    P = temp_target-temp
+    I = P/dt
+    D = (temp-temp_old)*dt
+    ontime = P*kP+I*kI+D*kD
+    temp_old = temp
 
-        logger(f"interval:{round(interval,3)},ontime:{round(ontime,3)},offtime:{round(interval-ontime,3)},temp:{digit_alignment(temp)},tP:{digit_alignment(P*kP)},tI:{digit_alignment(I*kI)},tD:{digit_alignment(D*kD)}")
+    logger(f"interval:{round(interval,3)},ontime:{round(ontime,3)},offtime:{round(interval-ontime,3)},temp:{digit_alignment(temp)},tP:{digit_alignment(P*kP)},tI:{digit_alignment(I*kI)},tD:{digit_alignment(D*kD)}")
 
-        if ontime<=0:
-            ssr.off()
-            time.sleep(interval)
-        elif ontime > interval:
-            ssr.on()
-            time.sleep(interval)
-        else:
-            ssr.on()
-            time.sleep(ontime)
-            ssr.off()
-            time.sleep(interval-int(ontime))
-
-    except KeyboardInterrupt:
-        print("SSR OFF!!")
-        ssr_controller(SSR_OFF)
-        exit(0)
+    if ontime<=0:
+        ssr.off()
+        time.sleep(interval)
+    elif ontime > interval:
+        ssr.on()
+        time.sleep(interval)
+    else:
+        ssr.on()
+        time.sleep(ontime)
+        ssr.off()
+        time.sleep(interval-int(ontime))
