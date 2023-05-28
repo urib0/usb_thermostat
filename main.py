@@ -13,7 +13,7 @@ import os
 
 DEBUG = False
 kP = 1
-kI = 0.1
+kI = 0
 kD = 0
 
 class usb_comon_sense_controller():
