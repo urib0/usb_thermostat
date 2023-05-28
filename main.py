@@ -13,7 +13,7 @@ import os
 
 DEBUG = False
 kP = 1
-kI = 0
+kI = 0.1
 kD = 0
 
 class usb_comon_sense_controller():
@@ -70,7 +70,7 @@ class themocouple_controller():
         return int(raw.split("=")[1])/100
 
 def log_print(s):
-    print(datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S:%f")[:-2]+":"+s)
+    print(datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S:%f")[:-4]+":"+s)
 
 def log_export(path,name,data):
     timestamp = datetime.datetime.now()
@@ -83,7 +83,7 @@ def log_export(path,name,data):
         f.write(write_str + "\n")
 
 def digit_alignment(num):
-    return "{:.3f}".format(num)
+    return "{:.2f}".format(num)
 
 # 設定値読み込み
 with open("./config.json", "r") as f:
@@ -99,6 +99,8 @@ interval = conf["interval"]
 temp_target = conf["TEMP_TARGET"]
 temp_old = thermo.read_temp()
 
+sumDiff = 0
+preDiff = 0
 while True:
     #　熱電対読み込み
     ret = thermo.read_temp()
@@ -108,15 +110,17 @@ while True:
         temp = float(ret)
 
     dt = interval
-    P = temp_target-temp
-    I = P/dt
-    D = (temp-temp_old)*dt
+    nowDiff = temp_target-temp
+    sumDiff += nowDiff
+    P = nowDiff
+    I = sumDiff*dt
+    D = (nowDiff-preDiff)/dt
     ontime = P*kP+I*kI+D*kD
-    temp_old = temp
+    preDiff = nowDiff
 
-    log_print(f"interval:{round(interval,3)},ontime:{round(ontime,3)},offtime:{round(interval-ontime,3)},temp:{digit_alignment(temp)},tP:{digit_alignment(P*kP)},tI:{digit_alignment(I*kI)},tD:{digit_alignment(D*kD)}")
+    log_print(f"interval:{digit_alignment(interval)},temp:{digit_alignment(temp)},on:{digit_alignment(ontime)},off:{digit_alignment(interval-ontime)},tP:{digit_alignment(P*kP)},tI:{digit_alignment(I*kI)},tD:{digit_alignment(D*kD)}")
 
-    if ontime<=0:
+    if ontime<1:
         ssr.off()
         time.sleep(interval)
     elif ontime > interval:
@@ -124,6 +128,6 @@ while True:
         time.sleep(interval)
     else:
         ssr.on()
-        time.sleep(ontime)
+        time.sleep(int(ontime))
         ssr.off()
-        time.sleep(interval-int(ontime))
+        time.sleep(int(interval-ontime))
