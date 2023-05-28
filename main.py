@@ -9,6 +9,7 @@ import datetime as dt
 import serial
 import datetime
 from typing import Union
+import os
 
 DEBUG = False
 SSR_ON = True
@@ -64,6 +65,7 @@ class themocouple_controller():
 
     def read_temp(self) -> Union[float,None]:
         raw = self.thermo.read()
+        log_export(path,name,raw)
         raw = raw.split(";")[0]
         if raw.split("=")[0] != "te":
             return None
@@ -87,8 +89,19 @@ def conv(data):
     else:
         return int(data[1])
 
-def logger(s):
+def log_print(s):
     print(datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S:%f")[:-2]+":"+s)
+
+def log_export(path,name,data):
+    timestamp = datetime.datetime.now()
+    filename = name + "_" + timestamp.strftime("%Y-%m-%d") + ".csv"
+    write_str = timestamp.strftime("%Y/%m/%d %H:%M:%S") + "," + data
+    path = path + "/" + name + "/"
+
+    os.makedirs(path, exist_ok=True)
+    f = open(path + filename, mode="a")
+    f.write(write_str + "\n")
+    f.close()
 
 def digit_alignment(num):
     return "{:.3f}".format(num)
@@ -97,6 +110,10 @@ def digit_alignment(num):
 f = open("./config.json", "r")
 conf = json.loads(f.read())
 f.close()
+
+path = conf['logdir']
+name = "thermo"
+
 ssr = ssr_controller(conf["ssr"]["serial_port"],conf["ssr"]["serial_rate"])
 thermo = themocouple_controller(conf["thermo"]["serial_port"],conf["thermo"]["serial_rate"])
 
@@ -120,7 +137,7 @@ while True:
     ontime = P*kP+I*kI+D*kD
     temp_old = temp
 
-    logger(f"interval:{round(interval,3)},ontime:{round(ontime,3)},offtime:{round(interval-ontime,3)},temp:{digit_alignment(temp)},tP:{digit_alignment(P*kP)},tI:{digit_alignment(I*kI)},tD:{digit_alignment(D*kD)}")
+    log_print(f"interval:{round(interval,3)},ontime:{round(ontime,3)},offtime:{round(interval-ontime,3)},temp:{digit_alignment(temp)},tP:{digit_alignment(P*kP)},tI:{digit_alignment(I*kI)},tD:{digit_alignment(D*kD)}")
 
     if ontime<=0:
         ssr.off()
