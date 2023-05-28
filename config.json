@@ -4,10 +4,8 @@
     "TEMP_TARGET": 75,
     "TEMP_OFFSET": 1,
     "thermo": {
-    "sensor_name": "thermo",
-        "sensors": [
-            "te"
-        ]
+        "serial_port": "/dev/hoge",
+        "serial_rate": 9600
     },
     "ssr": {
         "serial_port": "/dev/hoge",
